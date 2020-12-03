@@ -1,7 +1,7 @@
 {
   "name": "towers-rest-api",
   "version": "1.0.0",
-  "description": "Towers Rest APIs with Express, Sequelize & MySQL",
+  "description": "Towers Rest APIs",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
