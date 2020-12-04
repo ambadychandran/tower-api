@@ -8,3 +8,12 @@ npm install
 ```
 node server.js
 ```
+## Mirgrate Database 
+```
+sequelize db:migrate
+```
+
+## Seed Database 
+```
+sequelize db:seed:all
+```

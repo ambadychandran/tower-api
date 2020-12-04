@@ -14,7 +14,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 const db = require("./app/models");
 
-db.sequelize.sync();
+// db.sequelize.sync();
 
 // route to application welcome page
 app.get("/", (req, res) => {
