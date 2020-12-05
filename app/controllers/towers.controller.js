@@ -1,6 +1,8 @@
 const db = require("../models");
+const cache = require('../cache');
 const Towers = db.towers;
 const Op = db.Sequelize.Op;
+const sequelize = require('sequelize');
 
 // Create and Save a new Towers
 exports.create = (req, res) => {
@@ -36,14 +38,55 @@ exports.create = (req, res) => {
     });
 };
 
+const getPagination = (page, size) => {
+  const limit = size ? +size : 3;
+  const offset = page ? page * limit : 0;
+
+  return { limit, offset };
+};
+
+const getPagingData = (data, page, limit) => {
+  const { count: totalItems, rows: tutorials } = data;
+  const currentPage = page ? +page : 0;
+  const totalPages = Math.ceil(totalItems / limit);
+
+  return { totalItems, tutorials, totalPages, currentPage };
+};
+
 // Retrieve all Towers from the database.
 exports.findAll = (req, res) => {
-  const name = req.query.name;
-  var condition = name ? { name: { [Op.like]: `%${name}%` } } : null;
 
-  Towers.findAll({ where: condition })
+  cache.get(req.query.page, (err, data) => {
+    console.log(req.query)
+  })
+
+  const { page, size, name, rating, location, number_of_floors, orderby, sort } = req.query;
+  const showOffice = req.query['show-with-offices'] ? req.query['show-with-offices'] : null;
+  let orderCon = null;
+  if (orderby != undefined && sort != undefined) {
+    orderCon = [sequelize.literal(`${orderby} ${sort}`)]
+  }
+  var condition =
+  {
+    [Op.or]: [
+      name ? { name: { [Op.like]: `%${name}%` } } : null,
+      rating ? { rating: { [Op.like]: `%${rating}%` } } : null,
+      location ? { location: { [Op.like]: `%${location}%` } } : null,
+      number_of_floors ? { number_of_floors: { [Op.like]: `%${number_of_floors}%` } } : null,
+    ],
+    [Op.and]: [
+      showOffice == 'true' ? { number_of_offices: { [Op.not]: 0 } } : null
+    ]
+  }
+  if (name == null && rating == null && location == null && number_of_floors == null) {
+    delete condition[Op.or];
+  }
+  const { limit, offset } = getPagination(page, size);
+
+  Towers.findAndCountAll({ where: condition, limit, offset, order: orderCon })
     .then(data => {
-      res.send(data);
+      const response = getPagingData(data, page, limit);
+      res.send(response);
     })
     .catch(err => {
       res.status(500).send({
