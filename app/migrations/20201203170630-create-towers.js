@@ -17,6 +17,9 @@ module.exports = {
       number_of_floors: {
         type: Sequelize.INTEGER
       },
+      number_of_offices: {
+        type: Sequelize.INTEGER
+      },
       rating: {
         type: Sequelize.INTEGER
       },

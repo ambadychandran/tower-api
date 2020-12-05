@@ -13,12 +13,12 @@ jwtOptions.secretOrKey = 'wowwow';
 
 const getUser = async obj => {
   return await Users.findOne({
-  where: obj,
-});
+    where: obj,
+  });
 };
 
 // lets create our strategy for web token
-let strategy = new JwtStrategy(jwtOptions, function(jwt_payload, next) {
+let strategy = new JwtStrategy(jwtOptions, function (jwt_payload, next) {
   console.log('payload received', jwt_payload);
   let user = getUser({ id: jwt_payload.id });
   if (user) {
@@ -35,24 +35,26 @@ module.exports = app => {
 
   var router = require("express").Router();
 
-  router.get('/', passport.authenticate('jwt', { session: false }), function(req, res) {
-    towers.findAll(req, res);
+  // Create a new towers
+  router.post('/', passport.authenticate('jwt', { session: false }), function (req, res) {
+    towers.create(req, res);
   });
 
-  // Create a new towers
-  router.post("/", towers.create);
+  // Update a towers with id
+  router.put('/:id', passport.authenticate('jwt', { session: false }), function (req, res) {
+    towers.update(req, res);
+  });
+
+  // Delete a towers with id
+  router.delete('/:id', passport.authenticate('jwt', { session: false }), function (req, res) {
+    towers.delete(req, res);
+  });
+
+  // fetch all towers
+  router.get("/", towers.findAll);
 
   // Retrieve a single towers with id
   router.get("/:id", towers.findOne);
-
-  // Update a towers with id
-  router.put("/:id", towers.update);
-
-  // Delete a towers with id
-  router.delete("/:id", towers.delete);
-
-  // Delete all towers
-  router.delete("/", towers.deleteAll);
 
   app.use('/api/towers', router);
 };
