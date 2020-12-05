@@ -2,6 +2,7 @@
 const passportJWT = require('passport-jwt');
 const passport = require('passport');
 const db = require("../models");
+const appConfig = require("../config/app.config.js");
 
 const Users = db.users;
 let ExtractJwt = passportJWT.ExtractJwt;
@@ -9,7 +10,7 @@ let JwtStrategy = passportJWT.Strategy;
 
 let jwtOptions = {};
 jwtOptions.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
-jwtOptions.secretOrKey = 'wowwow';
+jwtOptions.secretOrKey = appConfig.JWTSECRTKEY;
 
 const getUser = async obj => {
   return await Users.findOne({
@@ -17,9 +18,8 @@ const getUser = async obj => {
   });
 };
 
-// lets create our strategy for web token
+//  web token strategy
 let strategy = new JwtStrategy(jwtOptions, function (jwt_payload, next) {
-  console.log('payload received', jwt_payload);
   let user = getUser({ id: jwt_payload.id });
   if (user) {
     next(null, user);
@@ -30,30 +30,33 @@ let strategy = new JwtStrategy(jwtOptions, function (jwt_payload, next) {
 // use the strategy
 passport.use(strategy);
 
-module.exports = app => {
+module.exports = (app,io) => {
   const towers = require("../controllers/towers.controller.js");
 
   var router = require("express").Router();
 
   // Create a new towers
   router.post('/', passport.authenticate('jwt', { session: false }), function (req, res) {
-    towers.create(req, res);
+    towers.create(io, req, res);
   });
 
   // Update a towers with id
   router.put('/:id', passport.authenticate('jwt', { session: false }), function (req, res) {
-    towers.update(req, res);
+    towers.update(io, req, res);
   });
 
   // Delete a towers with id
   router.delete('/:id', passport.authenticate('jwt', { session: false }), function (req, res) {
-    towers.delete(req, res);
+    towers.delete(io, req, res);
   });
 
-  // fetch all towers
+  // List all towers
   router.get("/", towers.findAll);
 
-  // Retrieve a single towers with id
+  // Search towers
+  router.get("/serach", towers.search);
+
+  // fetch towers with id
   router.get("/:id", towers.findOne);
 
   app.use('/api/towers', router);

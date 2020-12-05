@@ -4,12 +4,13 @@ const Op = db.Sequelize.Op;
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const passportJWT = require('passport-jwt');
+const appConfig = require("../config/app.config.js");
 
 let ExtractJwt = passportJWT.ExtractJwt;
 let JwtStrategy = passportJWT.Strategy;
 let jwtOptions = {};
 jwtOptions.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
-jwtOptions.secretOrKey = 'wowwow';
+jwtOptions.secretOrKey = appConfig.JWTSECRTKEY;
 
 // Create and Save a new User
 exports.register = (req, res) => {
